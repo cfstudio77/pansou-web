@@ -7,27 +7,31 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # 添加这行环境变量消除警告
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    
     steps:
       - uses: actions/checkout@v4
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20' # 即使这里写20，环境也会被强制切换为24运行，警告消除
           cache: 'npm'
 
       - name: Install and Build
         run: |
           npm install
-          # 如果你的项目需要配置API地址，可以在这里通过环境变量注入
-          # 假设代码里使用 process.env.VUE_APP_API_URL
           npm run build
         env:
-          VUE_APP_API_URL: '' # 如果留空，通常前端会调用当前域名下的/api，这正是我们需要的
+          # 如果你的项目需要特定的 API 地址，可以在这里填写，否则留空使用相对路径
+          VUE_APP_API_URL: '' 
 
       - name: Package
         run: |
-          tar -czvf dist.tar.gz dist/
+          # 检查 dist 是否生成，并将内容打包
+          tar -czvf dist.tar.gz -C dist .
 
       - uses: actions/upload-artifact@v4
         with:
