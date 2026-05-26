@@ -1,0 +1,35 @@
+name: Build Pansou Web
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install and Build
+        run: |
+          npm install
+          # 如果你的项目需要配置API地址，可以在这里通过环境变量注入
+          # 假设代码里使用 process.env.VUE_APP_API_URL
+          npm run build
+        env:
+          VUE_APP_API_URL: '' # 如果留空，通常前端会调用当前域名下的/api，这正是我们需要的
+
+      - name: Package
+        run: |
+          tar -czvf dist.tar.gz dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pansou-web-dist
+          path: dist.tar.gz
