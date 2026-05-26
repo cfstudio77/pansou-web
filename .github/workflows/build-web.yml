@@ -4,10 +4,12 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    # 添加这行环境变量消除警告
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     
@@ -17,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # 即使这里写20，环境也会被强制切换为24运行，警告消除
+          node-version: '20'
           cache: 'npm'
 
       - name: Install and Build
@@ -25,15 +27,19 @@ jobs:
           npm install
           npm run build
         env:
-          # 如果你的项目需要特定的 API 地址，可以在这里填写，否则留空使用相对路径
           VUE_APP_API_URL: '' 
 
       - name: Package
         run: |
-          # 检查 dist 是否生成，并将内容打包
           tar -czvf dist.tar.gz -C dist .
 
-      - uses: actions/upload-artifact@v4
+      - name: Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: pansou-web-dist
-          path: dist.tar.gz
+          tag_name: latest
+          name: Latest Web Build
+          files: dist.tar.gz
+          generate_release_notes: true
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
